@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootleg Collection</title>
+  <meta name="description" content="Musical theatre bootleg collection">
+  <meta name="theme-color" content="#35302b">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    /* ===== CSS Reset ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== Theme Variables ===== */
+    :root {
+      --background: #35302b;
+      --foreground: #f5ede2;
+      --card: #443d37;
+      --card-foreground: #f5ede2;
+      --secondary: #524a43;
+      --secondary-foreground: #ddd3c6;
+      --muted: #524a43;
+      --muted-foreground: #b8ad9f;
+      --accent: #6b6259;
+      --accent-foreground: #f5ede2;
+      --border: #5e554d;
+      --input: #5e554d;
+      --ring: #b8ad9f;
+      --blue-badge: #8fa8c4;
+      --violet-badge: #ad97bf;
+      --marquee: #2a2520;
+      --radius: 0.75rem;
+      --font-heading: 'DM Serif Display', Georgia, serif;
+      --font-sans: 'Nunito', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== Base ===== */
+    html { font-family: var(--font-sans); height: 100%; overflow: hidden; }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Film grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ===== No Scrollbar ===== */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ===== Layout ===== */
+    .navbar {
+      background: var(--marquee);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      font-family: var(--font-heading);
+      font-size: 18px;
+      color: var(--foreground);
+      letter-spacing: 0.5px;
+    }
+    .navbar-inner {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .contact-info {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--muted-foreground);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .contact-sep { opacity: 0.4; }
+    .app-layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      padding: 16px 12px 16px 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-fixed { flex-shrink: 0; }
+    .sidebar-showlist {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted-foreground);
+      padding: 0 10px;
+      margin-bottom: 6px;
+    }
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 8px;
+    }
+    .sidebar-link {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 6px 10px;
+      border-radius: calc(var(--radius) * 0.8);
+      font-size: 13px;
+      color: var(--muted-foreground);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.15s, background-color 0.15s;
+      font-family: inherit;
+    }
+    .sidebar-link:hover {
+      color: var(--foreground);
+      background: var(--accent);
+    }
+    .sidebar-link[data-active="true"] {
+      color: var(--foreground);
+      font-weight: 600;
+    }
+    .sidebar-link[data-active="true"]:hover {
+      background: var(--accent);
+    }
+    .sidebar-count {
+      margin-left: 4px;
+      font-size: 11px;
+      color: var(--muted-foreground);
+      font-weight: 400;
+    }
+
+    /* ===== Search ===== */
+    .search-wrapper { padding: 0 4px; margin-bottom: 10px; position: relative; }
+    .search-input-wrapper { position: relative; }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      color: var(--muted-foreground);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 32px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--muted);
+      border: 1px solid var(--input);
+      border-radius: calc(var(--radius) * 0.8);
+      color: var(--foreground);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input::placeholder { color: var(--muted-foreground); }
+    .search-input:focus { border-color: var(--ring); }
+
+    /* ===== Search Dropdown ===== */
+    .search-dropdown {
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      margin-top: 4px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 0.8);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,.3);
+      overflow: hidden;
+      z-index: 10;
+    }
+    .search-result {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--foreground);
+      background: none;
+      border: none;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.15s;
+    }
+    .search-result:first-child { border-top: none; }
+    .search-result:hover, .search-result.active { background: var(--muted); }
+    .search-result-name { font-weight: 600; }
+
+    /* ===== Filter Chips ===== */
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 0 4px; }
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: calc(var(--radius) * 0.6);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .filter-chip:hover { opacity: 0.7; }
+    .filter-chip-x { width: 10px; height: 10px; opacity: 0.5; }
+
+    /* ===== Badges ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: calc(var(--radius) * 0.6);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-show { background: var(--secondary); color: var(--secondary-foreground); }
+    .badge-actor { background: var(--violet-badge); color: var(--background); }
+    .badge-master { background: var(--blue-badge); color: var(--background); }
+    .badge-proshot { background: var(--violet-badge); color: var(--background); }
+    .badge-type { background: var(--muted); color: var(--muted-foreground); }
+
+    /* ===== Main Content ===== */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      padding: 16px;
+      padding-bottom: 70vh;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .section-header {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted-foreground);
+      margin-bottom: 10px;
+      margin-left: 4px;
+    }
+    .show-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: normal;
+      color: var(--foreground);
+      letter-spacing: -0.2px;
+      margin-bottom: 10px;
+      margin-left: 4px;
+    }
+    .show-section { margin-bottom: 24px; border-left: 2px solid transparent; padding-left: 8px; transition: border-color 0.6s ease; }
+    .show-section.dimmed { opacity: 0.3; }
+    .show-section.highlight { border-left-color: var(--ring); }
+    .show-section.highlight .show-title { color: var(--foreground); }
+    .card-list { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ===== Dividers ===== */
+    .divider-dashed {
+      border: none;
+      border-top: 1px dashed var(--border);
+      margin-bottom: 16px;
+    }
+
+    /* ===== Bootleg Card ===== */
+    .bootleg-card {
+      background: var(--card);
+      border-radius: calc(var(--radius) * 1.4);
+      border: 1px solid var(--border);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .bootleg-card.expanded {
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,.3);
+      border-color: var(--ring);
+    }
+    .bootleg-card.dimmed { opacity: 0.3; }
+    .card-trigger {
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      border-radius: calc(var(--radius) * 1.4);
+      color: inherit;
+      font-family: inherit;
+      transition: background-color 0.15s;
+    }
+    .card-trigger:hover { background: rgba(107, 98, 89, 0.5); }
+    .card-info { flex: 1; min-width: 0; }
+    .card-venue {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--foreground);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .card-date { font-size: 12px; color: var(--muted-foreground); }
+    .card-format { font-size: 11px; color: var(--muted-foreground); font-family: var(--font-mono); }
+
+    /* ===== Card Expanded Content ===== */
+    .card-body { padding: 0 16px 16px; }
+    .card-notes-label, .card-cast-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted-foreground);
+      margin-bottom: 6px;
+    }
+    .card-notes-text {
+      font-size: 13px;
+      color: var(--secondary-foreground);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    /* ===== Cast List ===== */
+    .cast-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      color: inherit;
+    }
+    .cast-trigger:hover .card-cast-label { color: var(--foreground); }
+    .cast-count {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      background: var(--secondary);
+      padding: 2px 8px;
+      border-radius: calc(var(--radius) * 0.8);
+    }
+    .cast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      margin-top: 4px;
+    }
+    .cast-member {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: calc(var(--radius) * 0.8);
+      font-size: 13px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--muted-foreground);
+      transition: color 0.15s, background-color 0.15s;
+    }
+    .cast-member:hover {
+      color: var(--foreground);
+      background: var(--accent);
+    }
+    .cast-actor { font-weight: 600; color: var(--foreground); }
+    .cast-role { font-size: 12px; color: var(--muted-foreground); }
+    .cast-arrow { width: 10px; height: 10px; color: var(--muted-foreground); opacity: 0.5; margin-left: auto; flex-shrink: 0; }
+
+    /* ===== Want Card ===== */
+    .want-card {
+      background: var(--accent);
+      border-radius: 10px;
+      padding: 12px 16px;
+      border-left: 3px solid var(--muted-foreground);
+    }
+    .want-title { font-size: 14px; font-weight: 600; color: var(--foreground); }
+    .want-note { font-size: 13px; color: var(--muted-foreground); margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <span>Bootleg Collection</span>
+      <div class="contact-info">
+        <span>Discord: AdiNeedsCoffee</span>
+        <span class="contact-sep">·</span>
+        <span>adi11shilo@gmail.com</span>
+        <span class="contact-sep">·</span>
+        <span>Not on Encora — would like an invitation</span>
+      </div>
+    </div>
+  </nav>
+  <div class="app-layout">
+    <aside id="sidebar" class="sidebar no-scrollbar"></aside>
+    <main id="main" class="main-content no-scrollbar"></main>
+  </div>
+
+  <script>
+    // ===== Configuration =====
+    const CONFIG = {
+      collectionUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXXLYAsNBcUEAoVhdflCuGyPBZq5HcS_J6ugmheD7QhLcB-9l02Ev_9NKiixLGqZFNZDdvgWiCPm-m/pub?gid=1514933830&single=true&output=csv',
+      wantsUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRAt5OSrxDxPURMyqPIL82iVN32Mw72-gtUx5Hc8y0IvXLNCCgYEi9AoPcgkdJB51ogSVDA2CRMIgLa/pub?gid=1740486742&single=true&output=csv',
+    };
+
+    // ===== SVG Icons =====
+    const ICONS = {
+      search: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+      x: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+      arrow: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>',
+      clapperboard: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
+      user: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      box: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+    };
+
+    const TYPE_ICONS = { show: 'clapperboard', actor: 'user', master: 'box' };
+
+    // ===== State =====
+    let state = {
+      bootlegs: [],
+      wants: [],
+      indexes: { shows: [], actors: [], masters: [] },
+      showGroups: new Map(),
+      filters: [],
+      activeShow: null,
+      expandedCards: new Set(),
+      expandedCasts: new Set(),
+    };
+
+    // ===== Utility Functions =====
+    function showIdFromName(name) {
+      return 'show-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function scrollToSection(sectionId) {
+      const el = document.getElementById(sectionId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 1500);
+    }
+
+    function matchesFilters(bootleg) {
+      return state.filters.every(f => {
+        if (f.type === 'show') return bootleg.title === f.name;
+        if (f.type === 'actor') return bootleg.cast.some(c => c.actor === f.name);
+        if (f.type === 'master') return bootleg.master === f.name;
+        return false;
+      });
+    }
+
+    // ===== Parse Cast String =====
+    function parseCast(castStr) {
+      if (!castStr || !castStr.trim()) return [];
+      return castStr.split('|').map(s => s.trim()).filter(Boolean).map(entry => {
+        const match = entry.match(/^(.+?)\s*\((.+)\)$/);
+        if (match) return { actor: match[1].trim(), role: match[2].trim() };
+        return { actor: entry.trim(), role: '' };
+      });
+    }
+
+    // ===== Data Loading =====
+    function loadCSV(url) {
+      return new Promise((resolve, reject) => {
+        Papa.parse(url, {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: results => resolve(results.data),
+          error: err => reject(err),
+        });
+      });
+    }
+
+    async function loadData() {
+      const [bootlegRows, wantRows] = await Promise.all([
+        loadCSV(CONFIG.collectionUrl),
+        loadCSV(CONFIG.wantsUrl),
+      ]);
+
+      state.bootlegs = bootlegRows.map((row, i) => ({
+        id: i,
+        title: (row.title || '').trim(),
+        venue: (row.venue || '').trim(),
+        date: (row.date || '').trim(),
+        master: (row.master || '').trim(),
+        format: (row.format || '').trim(),
+        size: (row.size || '').trim(),
+        type: (row.type || '').trim(),
+        cast: parseCast(row.cast || ''),
+        notes: (row.notes || '').trim(),
+      }));
+
+      state.wants = wantRows.map(row => ({
+        title: (row.title || '').trim(),
+        note: (row.note || '').trim(),
+      }));
+
+      // Build indexes
+      const showSet = new Set();
+      const actorSet = new Set();
+      const masterSet = new Set();
+
+      state.showGroups = new Map();
+
+      for (const b of state.bootlegs) {
+        if (b.title) showSet.add(b.title);
+        if (b.master) masterSet.add(b.master);
+        for (const c of b.cast) {
+          if (c.actor) actorSet.add(c.actor);
+        }
+        if (!state.showGroups.has(b.title)) {
+          state.showGroups.set(b.title, []);
+        }
+        state.showGroups.get(b.title).push(b);
+      }
+
+      state.indexes.shows = [...showSet].sort((a, b) => a.localeCompare(b));
+      state.indexes.actors = [...actorSet].sort((a, b) => a.localeCompare(b));
+      state.indexes.masters = [...masterSet].sort((a, b) => a.localeCompare(b));
+
+      console.log(`Loaded ${state.bootlegs.length} bootlegs, ${state.wants.length} wants`);
+      console.log(`Shows: ${state.indexes.shows.length}, Actors: ${state.indexes.actors.length}, Masters: ${state.indexes.masters.length}`);
+    }
+
+    // ===== Filter Management =====
+    function addFilter(item) {
+      if (state.filters.some(f => f.type === item.type && f.name === item.name)) return;
+      state.filters.push(item);
+      renderMain();
+      renderSidebar();
+      scrollToCollection();
+    }
+
+    function removeFilter(index) {
+      state.filters.splice(index, 1);
+      renderMain();
+      renderSidebar();
+      scrollToCollection();
+    }
+
+    function scrollToCollection() {
+      const el = document.getElementById('collection-header');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ===== Main Content Rendering =====
+    function renderMain() {
+      const main = document.getElementById('main');
+      const scrollTop = main.scrollTop;
+      let html = '';
+
+      // Wants section
+      if (state.wants.length > 0) {
+        html += '<div id="wants">';
+        html += '<p class="section-header">Wants</p>';
+        html += '<div class="card-list">';
+        for (const want of state.wants) {
+          html += '<div class="want-card">';
+          html += `<div class="want-title">${escapeHtml(want.title)}</div>`;
+          if (want.note) {
+            html += `<div class="want-note">${escapeHtml(want.note)}</div>`;
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+        html += '<hr class="divider-dashed" style="margin-top:16px;">';
+        html += '</div>';
+      }
+
+      // Collection
+      html += '<p class="section-header" id="collection-header">Collection</p>';
+
+      const hasFilters = state.filters.length > 0;
+
+      // Determine which shows match
+      const matchingShows = [];
+      const nonMatchingShows = [];
+
+      for (const showName of state.indexes.shows) {
+        const bootlegs = state.showGroups.get(showName) || [];
+        const anyMatch = bootlegs.some(b => matchesFilters(b));
+        if (!hasFilters || anyMatch) {
+          matchingShows.push(showName);
+        } else {
+          nonMatchingShows.push(showName);
+        }
+      }
+
+      // Render matching shows
+      for (const showName of matchingShows) {
+        html += renderShowSection(showName, false);
+      }
+
+      // Divider before non-matching
+      if (nonMatchingShows.length > 0 && matchingShows.length > 0) {
+        html += '<hr class="divider-dashed">';
+      }
+
+      // Render non-matching shows
+      for (const showName of nonMatchingShows) {
+        html += renderShowSection(showName, true);
+      }
+
+      main.innerHTML = html;
+      main.scrollTop = scrollTop;
+
+      // Attach event listeners
+      main.querySelectorAll('[data-toggle-card]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(btn.getAttribute('data-toggle-card'), 10);
+          if (state.expandedCards.has(id)) {
+            state.expandedCards.delete(id);
+            state.expandedCasts.delete(id);
+          } else {
+            state.expandedCards.add(id);
+          }
+          renderMain();
+        });
+      });
+
+      main.querySelectorAll('[data-toggle-cast]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = parseInt(btn.getAttribute('data-toggle-cast'), 10);
+          if (state.expandedCasts.has(id)) {
+            state.expandedCasts.delete(id);
+          } else {
+            state.expandedCasts.add(id);
+          }
+          renderMain();
+        });
+      });
+
+      main.querySelectorAll('[data-actor-filter]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const actor = btn.getAttribute('data-actor-filter');
+          addFilter({ name: actor, type: 'actor' });
+        });
+      });
+    }
+
+    function renderShowSection(showName, dimmedSection) {
+      const bootlegs = state.showGroups.get(showName) || [];
+      const sectionId = showIdFromName(showName);
+      const hasFilters = state.filters.length > 0;
+
+      let html = `<div class="show-section${dimmedSection ? ' dimmed' : ''}" id="${sectionId}">`;
+      html += `<h2 class="show-title">${escapeHtml(showName)}</h2>`;
+      html += '<div class="card-list">';
+
+      for (const b of bootlegs) {
+        const matches = matchesFilters(b);
+        const dimmedCard = hasFilters && !matches && !dimmedSection;
+        const expanded = state.expandedCards.has(b.id);
+        const castExpanded = state.expandedCasts.has(b.id);
+
+        let cardClasses = 'bootleg-card';
+        if (expanded) cardClasses += ' expanded';
+        if (dimmedCard) cardClasses += ' dimmed';
+
+        html += `<div class="${cardClasses}">`;
+
+        // Card trigger
+        html += `<button class="card-trigger" data-toggle-card="${b.id}">`;
+        html += '<div class="card-info">';
+        html += `<div class="card-venue">${escapeHtml(b.venue)}</div>`;
+        html += '<div class="card-meta">';
+        html += `<span class="card-date">${escapeHtml(b.date)}</span>`;
+        if (b.format || b.size) {
+          const parts = [b.format, b.size].filter(Boolean).join(' \u00b7 ');
+          html += `<span class="card-format">${escapeHtml(parts)}</span>`;
+        }
+        html += '</div></div>';
+
+        // Badge
+        if (b.type === 'pro_shot') {
+          html += '<span class="badge badge-proshot">PROSHOT</span>';
+        } else if (b.master) {
+          html += `<span class="badge badge-master">${escapeHtml(b.master)}</span>`;
+        }
+
+        html += '</button>';
+
+        // Expanded body
+        if (expanded) {
+          html += '<div class="card-body">';
+          html += '<hr class="divider-dashed" style="margin-bottom:12px;">';
+
+          if (b.notes) {
+            html += '<div class="card-notes-label">Notes</div>';
+            html += `<div class="card-notes-text">${escapeHtml(b.notes)}</div>`;
+          }
+
+          if (b.cast.length > 0) {
+            html += `<button class="cast-trigger" data-toggle-cast="${b.id}">`;
+            html += '<span class="card-cast-label">Cast</span>';
+            html += `<span class="cast-count">${b.cast.length} members</span>`;
+            html += '</button>';
+
+            if (castExpanded) {
+              html += '<div class="cast-grid">';
+              for (const c of b.cast) {
+                html += `<button class="cast-member" data-actor-filter="${escapeHtml(c.actor)}">`;
+                html += `<span class="cast-actor">${escapeHtml(c.actor)}</span>`;
+                if (c.role) html += `<span class="cast-role">${escapeHtml(c.role)}</span>`;
+                html += `<span class="cast-arrow">${ICONS.arrow}</span>`;
+                html += '</button>';
+              }
+              html += '</div>';
+            }
+          }
+
+          html += '</div>';
+        }
+
+        html += '</div>';
+      }
+
+      html += '</div></div>';
+      return html;
+    }
+
+    // ===== Sidebar Rendering =====
+    function renderSidebar() {
+      const sidebar = document.getElementById('sidebar');
+
+      // Preserve search state
+      const existingInput = sidebar.querySelector('.search-input');
+      const savedValue = existingInput ? existingInput.value : '';
+      const hadFocus = existingInput ? document.activeElement === existingInput : false;
+
+      let html = '';
+
+      // Fixed top section (wants, search, filters)
+      html += '<div class="sidebar-fixed">';
+
+      // Wants link
+      html += '<div class="sidebar-label">Wants</div>';
+      html += '<button class="sidebar-link" onclick="scrollToSection(\'wants\')">Wants</button>';
+      html += '<div class="sidebar-divider"></div>';
+
+      // Shows label
+      html += '<div class="sidebar-label">Shows</div>';
+
+      // Search
+      html += '<div class="search-wrapper" id="search-wrapper">';
+      html += '<div class="search-input-wrapper">';
+      html += `<span class="search-icon">${ICONS.search}</span>`;
+      html += `<input type="text" class="search-input" placeholder="Search shows, actors..." value="${escapeHtml(savedValue)}">`;
+      html += '</div>';
+      html += '<div class="search-dropdown" id="search-dropdown" style="display:none;"></div>';
+      html += '</div>';
+
+      // Filter chips
+      if (state.filters.length > 0) {
+        html += '<div class="filter-chips">';
+        state.filters.forEach((f, i) => {
+          const badgeClass = f.type === 'show' ? 'badge-show' : f.type === 'actor' ? 'badge-actor' : 'badge-master';
+          html += `<button class="filter-chip ${badgeClass}" data-remove-filter="${i}">`;
+          html += `${escapeHtml(f.name)} <span class="filter-chip-x">${ICONS.x}</span>`;
+          html += '</button>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>'; // end sidebar-fixed
+
+      // Scrollable show list
+      html += '<div class="sidebar-showlist no-scrollbar">';
+      for (const showName of state.indexes.shows) {
+        const bootlegs = state.showGroups.get(showName) || [];
+        const count = bootlegs.length;
+        const isActive = state.activeShow === showName;
+        const sectionId = showIdFromName(showName);
+        html += `<button class="sidebar-link" data-show="${escapeHtml(showName)}" data-active="${isActive}" onclick="scrollToSection('${sectionId}')">`;
+        html += escapeHtml(showName);
+        if (count > 1) html += `<span class="sidebar-count">(${count})</span>`;
+        html += '</button>';
+      }
+      html += '</div>'; // end sidebar-showlist
+
+      sidebar.innerHTML = html;
+
+      // Restore focus
+      const newInput = sidebar.querySelector('.search-input');
+      if (hadFocus && newInput) {
+        newInput.focus();
+        newInput.setSelectionRange(savedValue.length, savedValue.length);
+      }
+
+      // Search event listeners
+      newInput.addEventListener('input', () => { searchActiveIndex = -1; onSearchInput(); });
+      newInput.addEventListener('focus', () => {
+        if (newInput.value.trim()) onSearchInput();
+      });
+      newInput.addEventListener('keydown', onSearchKeydown);
+
+      // Filter chip removal
+      sidebar.querySelectorAll('[data-remove-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-remove-filter'), 10);
+          removeFilter(idx);
+        });
+      });
+
+      // Click outside to close dropdown
+      document.addEventListener('click', onDocumentClick);
+    }
+
+    function onDocumentClick(e) {
+      const wrapper = document.getElementById('search-wrapper');
+      const dropdown = document.getElementById('search-dropdown');
+      if (wrapper && dropdown && !wrapper.contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
+    }
+
+    let searchActiveIndex = -1;
+
+    function updateSearchHighlight() {
+      const dropdown = document.getElementById('search-dropdown');
+      if (!dropdown) return;
+      const items = dropdown.querySelectorAll('.search-result');
+      items.forEach((item, i) => {
+        item.classList.toggle('active', i === searchActiveIndex);
+      });
+    }
+
+    function onSearchKeydown(e) {
+      const dropdown = document.getElementById('search-dropdown');
+      if (!dropdown || dropdown.style.display === 'none') return;
+      const items = dropdown.querySelectorAll('.search-result');
+      if (items.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
+        updateSearchHighlight();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
+        updateSearchHighlight();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchActiveIndex >= 0 && searchActiveIndex < items.length) {
+          items[searchActiveIndex].click();
+        }
+      } else if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+        searchActiveIndex = -1;
+      }
+    }
+
+    function onSearchInput() {
+      const input = document.querySelector('.search-input');
+      const dropdown = document.getElementById('search-dropdown');
+      if (!input || !dropdown) return;
+
+      const query = input.value.trim().toLowerCase();
+      if (!query) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const results = [];
+
+      for (const name of state.indexes.shows) {
+        if (name.toLowerCase().includes(query)) {
+          results.push({ name, type: 'show' });
+        }
+        if (results.length >= 6) break;
+      }
+
+      if (results.length < 6) {
+        for (const name of state.indexes.actors) {
+          if (name.toLowerCase().includes(query)) {
+            results.push({ name, type: 'actor' });
+          }
+          if (results.length >= 6) break;
+        }
+      }
+
+      if (results.length < 6) {
+        for (const name of state.indexes.masters) {
+          if (name.toLowerCase().includes(query)) {
+            results.push({ name, type: 'master' });
+          }
+          if (results.length >= 6) break;
+        }
+      }
+
+      if (results.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      let html = '';
+      for (const r of results) {
+        const badgeClass = r.type === 'show' ? 'badge-show' : r.type === 'actor' ? 'badge-actor' : 'badge-master';
+        const icon = ICONS[TYPE_ICONS[r.type]];
+        html += `<button class="search-result" data-search-type="${r.type}" data-search-name="${escapeHtml(r.name)}">`;
+        html += `<span class="badge ${badgeClass}">${icon} ${r.type}</span>`;
+        html += `<span class="search-result-name">${escapeHtml(r.name)}</span>`;
+        html += '</button>';
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.style.display = 'block';
+
+      dropdown.querySelectorAll('.search-result').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const type = btn.getAttribute('data-search-type');
+          const name = btn.getAttribute('data-search-name');
+          addFilter({ name, type });
+          input.value = '';
+          dropdown.style.display = 'none';
+        });
+      });
+    }
+
+    // ===== Scroll Tracking =====
+    function setupScrollTracking() {
+      const main = document.getElementById('main');
+      main.addEventListener('scroll', () => {
+        const mainRect = main.getBoundingClientRect();
+        const mainCenter = mainRect.top + mainRect.height / 2;
+        let activeShow = null;
+        let closestDist = Infinity;
+
+        for (const name of state.indexes.shows) {
+          const el = document.getElementById(showIdFromName(name));
+          if (!el) continue;
+          const elRect = el.getBoundingClientRect();
+          // Pick the section closest to the center of the main container
+          const dist = Math.abs(elRect.top - mainCenter);
+          if (dist < closestDist) {
+            closestDist = dist;
+            activeShow = name;
+          }
+        }
+
+        if (activeShow && activeShow !== state.activeShow) {
+          state.activeShow = activeShow;
+          const showlist = document.querySelector('.sidebar-showlist');
+          document.querySelectorAll('[data-show]').forEach(btn => {
+            const showName = btn.getAttribute('data-show');
+            const isActive = showName === activeShow;
+            btn.setAttribute('data-active', isActive ? 'true' : 'false');
+            if (isActive && showlist) {
+              const listRect = showlist.getBoundingClientRect();
+              const btnRect = btn.getBoundingClientRect();
+              if (btnRect.top < listRect.top || btnRect.bottom > listRect.bottom) {
+                btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              }
+            }
+          });
+        }
+      }, { passive: true });
+    }
+
+    // ===== Bootstrap =====
+    function onDataReady() {
+      renderSidebar();
+      renderMain();
+      setupScrollTracking();
+    }
+
+    loadData().then(onDataReady).catch(err => console.error('Failed to load data:', err));
+  </script>
+</body>
+</html>
