@@ -67,6 +67,7 @@
 
     /* ===== Layout ===== */
     .navbar {
+      position: relative;
       background: var(--marquee);
       border-bottom: 1px solid var(--border);
       padding: 12px 16px;
@@ -91,6 +92,29 @@
       gap: 6px;
     }
     .contact-sep { opacity: 0.4; }
+    /* ===== Mobile Navbar Elements ===== */
+    .hamburger-btn, .mobile-search-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--foreground);
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+    .mobile-search-panel {
+      display: none;
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 19;
+    }
+    .sidebar-backdrop.open {
+      display: block;
+    }
     .app-layout {
       display: flex;
       flex: 1;
@@ -493,6 +517,199 @@
       font-size: 16px;
       letter-spacing: 0.3px;
     }
+    /* ===== Mobile Responsive ===== */
+    @media (max-width: 768px) {
+      /* Navbar */
+      .hamburger-btn { display: block; }
+      .mobile-search-btn { display: block; }
+      .contact-info { display: none; }
+      .navbar-inner { align-items: center; }
+
+      /* Mobile search panel (slide-in from right) */
+      .mobile-search-panel {
+        display: block;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 80%;
+        max-width: 300px;
+        z-index: 20;
+        background: var(--background);
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+        padding: 16px;
+        overflow-y: auto;
+      }
+      .mobile-search-panel.open {
+        transform: translateX(0);
+      }
+      .mobile-search-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .mobile-search-input-wrapper {
+        flex: 1;
+        position: relative;
+      }
+      .mobile-search-input-wrapper .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .mobile-search-input {
+        width: 100%;
+        padding: 10px 12px 10px 32px;
+        font-size: 14px;
+        font-family: inherit;
+        background: var(--muted);
+        border: 1px solid var(--input);
+        border-radius: calc(var(--radius) * 0.8);
+        color: var(--foreground);
+        outline: none;
+      }
+      .mobile-search-input::placeholder { color: var(--muted-foreground); }
+      .mobile-search-input:focus { border-color: var(--ring); }
+      .mobile-search-close {
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        padding: 8px;
+        line-height: 1;
+      }
+      .mobile-search-results {
+        display: none;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) * 0.8);
+        background: var(--card);
+        overflow: hidden;
+        margin-bottom: 12px;
+      }
+      .mobile-search-filters {
+        display: block;
+      }
+      .mobile-search-section-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted-foreground);
+        margin-bottom: 6px;
+      }
+      .mobile-search-preview-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .mobile-search-preview-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) * 0.8);
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: border-color 0.15s, background-color 0.15s;
+      }
+      .mobile-search-preview-item:hover {
+        border-color: var(--ring);
+        background: var(--secondary);
+      }
+      .mobile-search-preview-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--foreground);
+      }
+      .mobile-search-preview-meta {
+        font-size: 11px;
+        color: var(--muted-foreground);
+        margin-top: 2px;
+      }
+      .mobile-search-preview-more {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        text-align: center;
+        padding: 6px;
+      }
+      .mobile-search-preview-empty {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        padding: 8px 0;
+      }
+
+      /* Sidebar as slide-in overlay */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 80%;
+        max-width: 300px;
+        z-index: 20;
+        background: var(--background);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        padding-top: 16px;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      body.menu-open { overflow: hidden; }
+
+      /* Main content full width */
+      .main-content {
+        padding: 12px 12px 70vh;
+      }
+
+      /* Typography scaling */
+      .show-title {
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+        margin-bottom: 8px;
+      }
+      .show-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .show-section {
+        border-left: none;
+        padding-left: 0;
+      }
+      .section-header { font-size: 12px; }
+
+      /* Touch targets */
+      .sidebar-link { padding: 10px 12px; }
+      .cast-member { padding: 8px 10px; }
+      .search-result { padding: 10px 12px; }
+
+      /* Card trigger wrap */
+      .card-trigger { flex-wrap: wrap; }
+
+      /* Hide sidebar search on mobile (search is in navbar) */
+      #search-wrapper { display: none; }
+    }
+
+    @media (max-width: 400px) {
+      .cast-grid {
+        grid-template-columns: 1fr;
+        grid-auto-flow: row;
+      }
+      .cast-grid[style] {
+        grid-template-rows: none !important;
+      }
+    }
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -501,7 +718,10 @@
 <body>
   <nav class="navbar">
     <div class="navbar-inner">
-      <span>Bootleg Collection</span>
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <span class="navbar-title">Bootleg Collection</span>
       <div class="contact-info">
         <span>Discord: AdiNeedsCoffee</span>
         <span class="contact-sep">·</span>
@@ -509,8 +729,25 @@
         <span class="contact-sep">·</span>
         <span>Not on Encora — would like an invitation</span>
       </div>
+      <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
     </div>
   </nav>
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <aside class="mobile-search-panel" id="mobile-search-panel">
+    <div class="mobile-search-header">
+      <div class="mobile-search-input-wrapper">
+        <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input type="text" class="mobile-search-input" id="mobile-search-input" placeholder="Search shows, actors...">
+      </div>
+      <button class="mobile-search-close" id="mobile-search-close" aria-label="Close search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="mobile-search-results" id="mobile-search-dropdown"></div>
+    <div class="mobile-search-filters" id="mobile-search-filters"></div>
+  </aside>
   <div class="app-layout">
     <aside id="sidebar" class="sidebar no-scrollbar"></aside>
     <main id="main" class="main-content no-scrollbar"></main>
@@ -537,6 +774,7 @@
       box: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
       copy: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
       check: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+      menu: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>',
     };
 
     const TYPE_ICONS = { show: 'clapperboard', actor: 'user', master: 'box' };
@@ -565,6 +803,7 @@
     }
 
     function scrollToSection(sectionId) {
+      closeMobileMenu();
       const el = document.getElementById(sectionId);
       if (!el) return;
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -662,6 +901,7 @@
       state.filters.push(item);
       renderMain();
       renderSidebar();
+      renderMobileSearchPanel();
       scrollToCollection();
     }
 
@@ -669,7 +909,78 @@
       state.filters.splice(index, 1);
       renderMain();
       renderSidebar();
+      renderMobileSearchPanel();
       scrollToCollection();
+    }
+
+    function renderMobileSearchPanel() {
+      const filtersEl = document.getElementById('mobile-search-filters');
+      if (!filtersEl) return;
+
+      let html = '';
+
+      // Filter chips
+      if (state.filters.length > 0) {
+        html += '<div class="mobile-search-section-label">Active Filters</div>';
+        html += '<div class="filter-chips" style="margin-bottom:12px;">';
+        state.filters.forEach((f, i) => {
+          const badgeClass = f.type === 'show' ? 'badge-show' : f.type === 'actor' ? 'badge-actor' : 'badge-master';
+          html += `<button class="filter-chip ${badgeClass}" data-mobile-remove-filter="${i}">`;
+          html += `${escapeHtml(f.name)} <span class="filter-chip-x">${ICONS.x}</span>`;
+          html += '</button>';
+        });
+        html += '</div>';
+
+        // Preview matching bootlegs
+        const matching = state.bootlegs.filter(b => matchesFilters(b));
+        if (matching.length > 0) {
+          html += `<div class="mobile-search-section-label">Matches (${matching.length})</div>`;
+          html += '<div class="mobile-search-preview-list">';
+          const shown = matching.slice(0, 10);
+          for (const b of shown) {
+            html += `<button class="mobile-search-preview-item" data-preview-id="${b.id}" data-preview-show="${escapeHtml(b.title)}">`;
+            html += `<div class="mobile-search-preview-title">${escapeHtml(b.title)}</div>`;
+            html += `<div class="mobile-search-preview-meta">${escapeHtml(b.venue)}`;
+            if (b.date) html += ` &middot; ${escapeHtml(b.date)}`;
+            html += '</div>';
+            html += '</button>';
+          }
+          if (matching.length > 10) {
+            html += `<div class="mobile-search-preview-more">+${matching.length - 10} more</div>`;
+          }
+          html += '</div>';
+        } else {
+          html += '<div class="mobile-search-preview-empty">No matching bootlegs</div>';
+        }
+      }
+
+      filtersEl.innerHTML = html;
+
+      // Attach filter chip removal
+      filtersEl.querySelectorAll('[data-mobile-remove-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-mobile-remove-filter'), 10);
+          removeFilter(idx);
+        });
+      });
+
+      // Attach preview item click — expand card and scroll to it
+      filtersEl.querySelectorAll('[data-preview-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = parseInt(btn.getAttribute('data-preview-id'), 10);
+          const showName = btn.getAttribute('data-preview-show');
+          state.expandedCards.add(id);
+          renderMain();
+          closeMobileSearch();
+          const sectionId = showIdFromName(showName);
+          setTimeout(() => {
+            const cardEl = document.querySelector(`[data-toggle-card="${id}"]`);
+            if (cardEl) {
+              cardEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 300);
+        });
+      });
     }
 
     function scrollToCollection() {
@@ -978,6 +1289,7 @@
       });
 
       // Click outside to close dropdown
+      document.removeEventListener('click', onDocumentClick);
       document.addEventListener('click', onDocumentClick);
     }
 
@@ -991,8 +1303,7 @@
 
     let searchActiveIndex = -1;
 
-    function updateSearchHighlight() {
-      const dropdown = document.getElementById('search-dropdown');
+    function updateSearchHighlightIn(dropdown) {
       if (!dropdown) return;
       const items = dropdown.querySelectorAll('.search-result');
       items.forEach((item, i) => {
@@ -1000,8 +1311,13 @@
       });
     }
 
-    function onSearchKeydown(e) {
+    function updateSearchHighlight() {
       const dropdown = document.getElementById('search-dropdown');
+      updateSearchHighlightIn(dropdown);
+    }
+
+    function onSearchKeydownFor(e, dropdownId) {
+      const dropdown = document.getElementById(dropdownId);
       if (!dropdown || dropdown.style.display === 'none') return;
       const items = dropdown.querySelectorAll('.search-result');
       if (items.length === 0) return;
@@ -1009,11 +1325,11 @@
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
-        updateSearchHighlight();
+        updateSearchHighlightIn(dropdown);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
-        updateSearchHighlight();
+        updateSearchHighlightIn(dropdown);
       } else if (e.key === 'Enter') {
         e.preventDefault();
         const idx = searchActiveIndex >= 0 ? searchActiveIndex : 0;
@@ -1026,9 +1342,85 @@
       }
     }
 
+    function onSearchKeydown(e) {
+      onSearchKeydownFor(e, 'search-dropdown');
+    }
+
     function onSearchInput() {
       const input = document.querySelector('.search-input');
       const dropdown = document.getElementById('search-dropdown');
+      if (!input || !dropdown) return;
+
+      const query = input.value.trim().toLowerCase();
+      if (!query) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const results = [];
+
+      for (const name of state.indexes.shows) {
+        if (name.toLowerCase().includes(query)) {
+          results.push({ name, type: 'show' });
+        }
+        if (results.length >= 6) break;
+      }
+
+      if (results.length < 6) {
+        for (const name of state.indexes.actors) {
+          if (name.toLowerCase().includes(query)) {
+            results.push({ name, type: 'actor' });
+          }
+          if (results.length >= 6) break;
+        }
+      }
+
+      if (results.length < 6) {
+        for (const name of state.indexes.masters) {
+          if (name.toLowerCase().includes(query)) {
+            results.push({ name, type: 'master' });
+          }
+          if (results.length >= 6) break;
+        }
+      }
+
+      const filtered = results.filter(r => !state.filters.some(f => f.type === r.type && f.name === r.name));
+
+      if (filtered.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      let html = '';
+      for (const r of filtered) {
+        const badgeClass = r.type === 'show' ? 'badge-show' : r.type === 'actor' ? 'badge-actor' : 'badge-master';
+        const icon = ICONS[TYPE_ICONS[r.type]];
+        html += `<button class="search-result" data-search-type="${r.type}" data-search-name="${escapeHtml(r.name)}">`;
+        html += `<span class="badge ${badgeClass}">${icon} ${r.type}</span>`;
+        html += `<span class="search-result-name">${escapeHtml(r.name)}</span>`;
+        html += '</button>';
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.style.display = 'block';
+
+      dropdown.querySelectorAll('.search-result').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const type = btn.getAttribute('data-search-type');
+          const name = btn.getAttribute('data-search-name');
+          input.value = '';
+          dropdown.style.display = 'none';
+          searchActiveIndex = -1;
+          addFilter({ name, type });
+          input.focus();
+        });
+      });
+    }
+
+    function onMobileSearchInput() {
+      const input = document.getElementById('mobile-search-input');
+      const dropdown = document.getElementById('mobile-search-dropdown');
       if (!input || !dropdown) return;
 
       const query = input.value.trim().toLowerCase();
@@ -1146,6 +1538,72 @@
       renderMain();
       setupScrollTracking();
     }
+
+    // ===== Mobile Menu Toggle =====
+    function openMobileMenu() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebar-backdrop').classList.add('open');
+      document.body.classList.add('menu-open');
+    }
+
+    function closeMobileMenu() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-backdrop').classList.remove('open');
+      document.body.classList.remove('menu-open');
+    }
+
+    document.getElementById('hamburger-btn').addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar.classList.contains('open')) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    });
+
+    document.getElementById('sidebar-backdrop').addEventListener('click', () => {
+      closeMobileMenu();
+      closeMobileSearch();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+        closeMobileSearch();
+      }
+    });
+
+    // ===== Mobile Search =====
+    function openMobileSearch() {
+      document.getElementById('mobile-search-panel').classList.add('open');
+      document.getElementById('sidebar-backdrop').classList.add('open');
+      document.body.classList.add('menu-open');
+      renderMobileSearchPanel();
+      document.getElementById('mobile-search-input').focus();
+    }
+
+    function closeMobileSearch() {
+      document.getElementById('mobile-search-panel').classList.remove('open');
+      document.getElementById('sidebar-backdrop').classList.remove('open');
+      document.body.classList.remove('menu-open');
+      document.getElementById('mobile-search-input').value = '';
+      document.getElementById('mobile-search-dropdown').style.display = 'none';
+    }
+
+    document.getElementById('mobile-search-btn').addEventListener('click', openMobileSearch);
+    document.getElementById('mobile-search-close').addEventListener('click', closeMobileSearch);
+
+    const mobileSearchInput = document.getElementById('mobile-search-input');
+    mobileSearchInput.addEventListener('input', () => {
+      searchActiveIndex = -1;
+      onMobileSearchInput();
+    });
+    mobileSearchInput.addEventListener('focus', () => {
+      if (mobileSearchInput.value.trim()) onMobileSearchInput();
+    });
+    mobileSearchInput.addEventListener('keydown', (e) => {
+      onSearchKeydownFor(e, 'mobile-search-dropdown');
+    });
 
     loadData().then(onDataReady).catch(err => console.error('Failed to load data:', err));
   </script>
