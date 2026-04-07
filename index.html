@@ -347,7 +347,7 @@
     .card-format { font-size: 11px; color: var(--muted-foreground); font-family: var(--font-mono); }
 
     /* ===== Card Expanded Content ===== */
-    .card-body { padding: 0 16px 16px; }
+    .card-body { padding: 0 16px 16px; position: relative; }
     .card-notes-label { margin-top: 10px; }
     .card-notes-label, .card-cast-label {
       font-size: 10px;
@@ -413,6 +413,50 @@
     .cast-actor { font-weight: 600; color: var(--foreground); }
     .cast-role { font-size: 12px; color: var(--muted-foreground); }
     .cast-arrow { width: 10px; height: 10px; color: var(--muted-foreground); opacity: 0.5; margin-left: auto; flex-shrink: 0; }
+
+    /* ===== Copy Button ===== */
+    .copy-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 0.8);
+      padding: 5px 7px;
+      cursor: pointer;
+      color: var(--muted-foreground);
+      opacity: 0.4;
+      transition: opacity 0.15s, color 0.15s, background-color 0.15s;
+      display: flex;
+      align-items: center;
+      line-height: 1;
+    }
+    .copy-btn:hover { opacity: 1; color: var(--foreground); background: var(--ring); }
+    .copy-btn.copied { opacity: 1; color: var(--accent-foreground); }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--card);
+      color: var(--foreground);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      box-shadow: 0 8px 20px rgba(0,0,0,.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
 
     /* ===== Want Card ===== */
     .want-card {
@@ -491,6 +535,8 @@
       clapperboard: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
       user: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
       box: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+      copy: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+      check: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     };
 
     const TYPE_ICONS = { show: 'clapperboard', actor: 'user', master: 'box' };
@@ -726,6 +772,43 @@
           addFilter({ name: actor, type: 'actor' });
         });
       });
+
+      main.querySelectorAll('[data-copy-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = parseInt(btn.getAttribute('data-copy-id'), 10);
+          const b = state.bootlegs[id];
+          if (!b) return;
+          const text = formatBootlegText(b);
+          navigator.clipboard.writeText(text).then(() => {
+            btn.innerHTML = ICONS.check;
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerHTML = ICONS.copy; btn.classList.remove('copied'); }, 1500);
+            showToast('Copied to clipboard');
+          });
+        });
+      });
+    }
+
+    function formatBootlegText(b) {
+      const lines = [];
+      const header = [b.title, b.venue, b.date, b.master].filter(Boolean).join(' | ');
+      lines.push(header);
+      const meta = [b.format, b.size].filter(Boolean).join(' | ');
+      if (meta) lines.push(meta);
+      if (b.cast.length > 0) {
+        const castStr = b.cast.map(c => c.role ? `${c.actor} (${c.role})` : c.actor).join(', ');
+        lines.push('Cast: ' + castStr);
+      }
+      if (b.notes) lines.push(b.notes);
+      return lines.join('\n');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
     function renderShowSection(showName, dimmedSection) {
@@ -800,6 +883,7 @@
             html += `<div class="card-notes-text">${escapeHtml(b.notes)}</div>`;
           }
 
+          html += `<button class="copy-btn" data-copy-id="${b.id}" title="Copy info">${ICONS.copy}</button>`;
           html += '</div>';
         }
 
@@ -1065,5 +1149,6 @@
 
     loadData().then(onDataReady).catch(err => console.error('Failed to load data:', err));
   </script>
+  <div class="toast" id="toast">Copied to clipboard</div>
 </body>
 </html>
