@@ -469,7 +469,7 @@
       filters: [],
       activeShow: null,
       expandedCards: new Set(),
-      expandedCasts: new Set(),
+      collapsedCasts: new Set(),
     };
 
     // ===== Utility Functions =====
@@ -662,7 +662,7 @@
           const id = parseInt(btn.getAttribute('data-toggle-card'), 10);
           if (state.expandedCards.has(id)) {
             state.expandedCards.delete(id);
-            state.expandedCasts.delete(id);
+            state.collapsedCasts.delete(id);
           } else {
             state.expandedCards.add(id);
           }
@@ -674,10 +674,10 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const id = parseInt(btn.getAttribute('data-toggle-cast'), 10);
-          if (state.expandedCasts.has(id)) {
-            state.expandedCasts.delete(id);
+          if (state.collapsedCasts.has(id)) {
+            state.collapsedCasts.delete(id);
           } else {
-            state.expandedCasts.add(id);
+            state.collapsedCasts.add(id);
           }
           renderMain();
         });
@@ -705,7 +705,7 @@
         const matches = matchesFilters(b);
         const dimmedCard = hasFilters && !matches && !dimmedSection;
         const expanded = state.expandedCards.has(b.id);
-        const castExpanded = state.expandedCasts.has(b.id);
+        const castExpanded = !state.collapsedCasts.has(b.id);
 
         let cardClasses = 'bootleg-card';
         if (expanded) cardClasses += ' expanded';
