@@ -348,6 +348,7 @@
 
     /* ===== Card Expanded Content ===== */
     .card-body { padding: 0 16px 16px; }
+    .card-notes-label { margin-top: 10px; }
     .card-notes-label, .card-cast-label {
       font-size: 10px;
       font-weight: 700;
@@ -773,11 +774,6 @@
           html += '<div class="card-body">';
           html += '<hr class="divider-dashed" style="margin-bottom:12px;">';
 
-          if (b.notes) {
-            html += '<div class="card-notes-label">Notes</div>';
-            html += `<div class="card-notes-text">${escapeHtml(b.notes)}</div>`;
-          }
-
           if (b.cast.length > 0) {
             html += `<button class="cast-trigger" data-toggle-cast="${b.id}">`;
             html += '<span class="card-cast-label">Cast</span>';
@@ -795,6 +791,11 @@
               }
               html += '</div>';
             }
+          }
+
+          if (b.notes) {
+            html += '<div class="card-notes-label">Notes</div>';
+            html += `<div class="card-notes-text">${escapeHtml(b.notes)}</div>`;
           }
 
           html += '</div>';
