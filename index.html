@@ -599,7 +599,8 @@
         state.showGroups.get(b.title).push(b);
       }
 
-      state.indexes.shows = [...showSet].sort((a, b) => a.localeCompare(b));
+      const stripThe = s => s.replace(/^the\s+/i, '');
+      state.indexes.shows = [...showSet].sort((a, b) => stripThe(a).localeCompare(stripThe(b)));
       state.indexes.actors = [...actorSet].sort((a, b) => a.localeCompare(b));
       state.indexes.masters = [...masterSet].sort((a, b) => a.localeCompare(b));
 
