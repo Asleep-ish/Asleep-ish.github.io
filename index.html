@@ -387,6 +387,7 @@
     .cast-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      grid-auto-flow: column;
       gap: 4px 12px;
       margin-top: 4px;
     }
@@ -781,7 +782,8 @@
             html += '</button>';
 
             if (castExpanded) {
-              html += '<div class="cast-grid">';
+              const castRows = Math.ceil(b.cast.length / 2);
+              html += `<div class="cast-grid" style="grid-template-rows: repeat(${castRows}, auto)">`;
               for (const c of b.cast) {
                 html += `<button class="cast-member" data-actor-filter="${escapeHtml(c.actor)}">`;
                 html += `<span class="cast-actor">${escapeHtml(c.actor)}</span>`;
