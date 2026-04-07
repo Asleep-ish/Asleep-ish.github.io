@@ -928,8 +928,9 @@
         updateSearchHighlight();
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (searchActiveIndex >= 0 && searchActiveIndex < items.length) {
-          items[searchActiveIndex].click();
+        const idx = searchActiveIndex >= 0 ? searchActiveIndex : 0;
+        if (idx < items.length) {
+          items[idx].click();
         }
       } else if (e.key === 'Escape') {
         dropdown.style.display = 'none';
@@ -975,13 +976,15 @@
         }
       }
 
-      if (results.length === 0) {
+      const filtered = results.filter(r => !state.filters.some(f => f.type === r.type && f.name === r.name));
+
+      if (filtered.length === 0) {
         dropdown.style.display = 'none';
         return;
       }
 
       let html = '';
-      for (const r of results) {
+      for (const r of filtered) {
         const badgeClass = r.type === 'show' ? 'badge-show' : r.type === 'actor' ? 'badge-actor' : 'badge-master';
         const icon = ICONS[TYPE_ICONS[r.type]];
         html += `<button class="search-result" data-search-type="${r.type}" data-search-name="${escapeHtml(r.name)}">`;
@@ -998,9 +1001,11 @@
           e.stopPropagation();
           const type = btn.getAttribute('data-search-type');
           const name = btn.getAttribute('data-search-name');
-          addFilter({ name, type });
           input.value = '';
           dropdown.style.display = 'none';
+          searchActiveIndex = -1;
+          addFilter({ name, type });
+          input.focus();
         });
       });
     }
